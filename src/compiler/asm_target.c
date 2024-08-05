@@ -4,6 +4,7 @@
 #include "compiler_internal.h"
 #include "compiler/asm/x86.h"
 #include "compiler/asm/aarch64.h"
+#include "compiler/asm/riscv.h"
 
 #define ASM_PTR_HASH(name__) (uint32_t)(((uintptr_t)name__  * 31) ^ ((uintptr_t)name__ >> 15))
 
@@ -279,7 +280,36 @@ static void init_asm_arm(void)
 
 static void init_asm_riscv(void)
 {
-	error_exit("RISCV asm not complete.");
+	asm_target.clobber_name_list = RISCVClobberNames;
+	asm_target.extra_clobbers = NULL;
+	unsigned int bits = 0;
+	switch(platform_target.arch) {
+		case ARCH_TYPE_RISCV64:
+			reg_instr("add", "w:r64, r64, r64");
+			reg_instr("sub", "w:r64, r64, r64");
+			reg_instr("addi", "w:r64, r64, immi16");
+			bits = ARG_BITS_64;
+			break;
+		case ARCH_TYPE_RISCV32:
+			reg_instr("add", "w:r32, r32, r32");
+			reg_instr("sub", "w:r32, r32, r32");
+			reg_instr("addi", "w:r32, r32, immi16");
+			bits = ARG_BITS_32;
+			break;
+		default:
+			UNREACHABLE
+	}
+	reg_register_list(riscv_gp_integer_regs, 32, ASM_REG_INT, bits, RISCV_X0);
+	reg_register_list(riscv_arg_integer_regs, 8, ASM_REG_INT, bits, RISCV_X10);
+	reg_register_list(riscv_temp_integer_regs, 3, ASM_REG_INT, bits, RISCV_X5);
+	reg_register_list(&riscv_temp_integer_regs[3], 4, ASM_REG_INT, bits, RISCV_X28);
+	reg_register_list(riscv_save_integer_regs, 2, ASM_REG_INT, bits, RISCV_X8);
+	reg_register_list(&riscv_save_integer_regs[2], 10, ASM_REG_INT, bits, RISCV_X18);
+	reg_register("$ra", ASM_REG_INT, bits, RISCV_X1);
+	reg_register("$sp", ASM_REG_INT, bits, RISCV_X2);
+	reg_register("$gp", ASM_REG_INT, bits, RISCV_X3);
+	reg_register("$tp", ASM_REG_INT, bits, RISCV_X4);
+	reg_register("$zero", ASM_REG_INT, bits, RISCV_X0);
 }
 
 static void init_asm_ppc(void)
