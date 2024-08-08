@@ -42,10 +42,20 @@ INLINE AsmArgBits parse_bits(const char **desc)
 		*desc += 1;
 		return ARG_BITS_8;
 	}
+	if (memcmp("12", *desc, 2) == 0)
+	{
+		*desc += 2;
+		return ARG_BITS_12;
+	}
 	if (memcmp("16", *desc, 2) == 0)
 	{
 		*desc += 2;
 		return ARG_BITS_16;
+	}
+	if (memcmp("20", *desc, 2) == 0)
+	{
+		*desc += 2;
+		return ARG_BITS_20;
 	}
 	if (memcmp("32", *desc, 2) == 0)
 	{
@@ -71,6 +81,11 @@ INLINE AsmArgBits parse_bits(const char **desc)
 	{
 		*desc += 3;
 		return ARG_BITS_512;
+	}
+	if (memcmp("5", *desc, 1) == 0)
+	{
+		*desc += 1;
+		return ARG_BITS_5;
 	}
 	error_exit("Invalid bits: %s.", *desc);
 }
@@ -123,7 +138,7 @@ INLINE AsmArgType decode_arg_type(const char **desc)
 					}
 					if (c == 'u')
 					{
-						desc++;
+						(*desc)++;
 						arg_type.imm_arg_ubits |= parse_bits(desc);
 						goto NEXT;
 					}
@@ -285,15 +300,70 @@ static void init_asm_riscv(void)
 	unsigned int bits = 0;
 	switch(platform_target.arch) {
 		case ARCH_TYPE_RISCV64:
+			// math
 			reg_instr("add", "w:r64, r64, r64");
 			reg_instr("sub", "w:r64, r64, r64");
-			reg_instr("addi", "w:r64, r64, immi16");
+			reg_instr("addi", "w:r64, r64, immi12");
+			reg_instr("neg", "w:r64, r64");
+			// bit
+			reg_instr("and", "w:r64, r64, r64");
+			reg_instr("or", "w:r64, r64, r64");
+			reg_instr("xor", "w:r64, r64, r64");
+			reg_instr("not", "w:r64, r64");
+			reg_instr("andi", "w:r64, r64, immi12");
+			reg_instr("ori", "w:r64, r64, immi12");
+			reg_instr("xori", "w:r64, r64, immi12");
+			// shift
+			reg_instr("sll", "w:r64, r64, r64");
+			reg_instr("srl", "w:r64, r64, r64");
+			reg_instr("sra", "w:r64, r64, r64");
+			reg_instr("slli", "w:r64, r64, immu5");
+			reg_instr("srli", "w:r64, r64, immu5");
+			reg_instr("srai", "w:r64, r64, immu5");
+			// load
+			reg_instr("li", "w:r64, immi64");
+			reg_instr("lui", "w:r64, immu20");
+			reg_instr("auipc", "w:r64, immi20");
+			reg_instr("mv", "w:r64, r64");
+			reg_instr("ld", "w:r64, immi12, r64");
+			reg_instr("lw", "w:r64, immi12, r64");
+			reg_instr("lh", "w:r64, immi12, r64");
+			reg_instr("lhu", "w:r64, immi12, r64");
+			reg_instr("lb", "w:r64, immi12, r64");
+			reg_instr("lbu", "w:r64, immi12, r64");
 			bits = ARG_BITS_64;
 			break;
 		case ARCH_TYPE_RISCV32:
+			// math
 			reg_instr("add", "w:r32, r32, r32");
 			reg_instr("sub", "w:r32, r32, r32");
-			reg_instr("addi", "w:r32, r32, immi16");
+			reg_instr("addi", "w:r32, r32, immi12");
+			reg_instr("neg", "w:r32, r32");
+			// bit
+			reg_instr("and", "w:r32, r32, r32");
+			reg_instr("or", "w:r32, r32, r32");
+			reg_instr("xor", "w:r32, r32, r32");
+			reg_instr("not", "w:r32, r32");
+			reg_instr("andi", "w:r32, r32, immi12");
+			reg_instr("ori", "w:r32, r32, immi12");
+			reg_instr("xori", "w:r32, r32, immi12");
+			// shift
+			reg_instr("sll", "w:r32, r32, r32");
+			reg_instr("srl", "w:r32, r32, r32");
+			reg_instr("sra", "w:r32, r32, r32");
+			reg_instr("slli", "w:r32, r32, immu5");
+			reg_instr("srli", "w:r32, r32, immu5");
+			reg_instr("srai", "w:r32, r32, immu5");
+			// load
+			reg_instr("li", "w:r32, immi32");
+			reg_instr("lui", "w:r32, immu20");
+			reg_instr("auipc", "w:r32, immi20");
+			reg_instr("mv", "w:r32, r32");
+			reg_instr("lw", "w:r32, immi12, r32");
+			reg_instr("lh", "w:r32, immi12, r32");
+			reg_instr("lhu", "w:r32, immi12, r32");
+			reg_instr("lb", "w:r32, immi12, r32");
+			reg_instr("lbu", "w:r32, immi12, r32");
 			bits = ARG_BITS_32;
 			break;
 		default:

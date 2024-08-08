@@ -391,6 +391,13 @@ static void x64_classify(Type *type, ByteSize offset_base, X64Class *lo_class, X
 			*lo_class = CLASS_INTEGER;
 			*hi_class = CLASS_INTEGER;
 			break;
+		case TYPE_U5:
+		case TYPE_U12:
+		case TYPE_U20:
+		case TYPE_I5:
+		case TYPE_I12:
+		case TYPE_I20:
+			UNREACHABLE
 		case TYPE_BOOL:
 		case TYPE_U8:
 		case TYPE_U16:
@@ -567,6 +574,13 @@ AbiType x64_get_int_type_at_offset(Type *type, unsigned offset, Type *source_typ
 		case TYPE_FUNC_PTR:
 			if (!offset) return abi_type_get(type);
 			break;
+		case TYPE_U5:
+		case TYPE_U12:
+		case TYPE_U20:
+		case TYPE_I5:
+		case TYPE_I12:
+		case TYPE_I20:
+			UNREACHABLE
 		case TYPE_BOOL:
 		case TYPE_U8:
 		case TYPE_I8:

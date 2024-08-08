@@ -8,8 +8,8 @@ static Type *flatten_raw_function_type(Type *type);
 
 static struct
 {
-	Type u0, u1, i8, i16, i32, i64, i128;
-	Type u8, u16, u32, u64, u128;
+	Type u0, u1, i5, i8, i12, i16, i20, i32, i64, i128;
+	Type u5, u8, u12, u16, u20, u32, u64, u128;
 	Type bf16, f16, f32, f64, f128;
 	Type usz, isz, uptr, iptr;
 	Type string;
@@ -49,6 +49,12 @@ Type *type_member = &t.member;
 Type *type_chars = NULL;
 Type *type_wildcard_optional = NULL;
 Type *type_string = &t.string;
+Type *type_i5 = &t.i5;
+Type *type_i12 = &t.i12;
+Type *type_i20 = &t.i20;
+Type *type_u5 = &t.u5;
+Type *type_u12 = &t.u12;
+Type *type_u20 = &t.u20;
 
 static unsigned size_slice;
 static AlignSize alignment_slice;
@@ -75,8 +81,11 @@ Type *type_int_signed_by_bitsize(BitSize bitsize)
 {
 	switch (bitsize)
 	{
+		case 5: return type_i5;
 		case 8: return type_ichar;
+		case 12: return type_i12;
 		case 16: return type_short;
+		case 20: return type_i20;
 		case 32: return type_int;
 		case 64: return type_long;
 		case 128: return type_i128;
@@ -87,8 +96,11 @@ Type *type_int_unsigned_by_bitsize(BitSize bit_size)
 {
 	switch (bit_size)
 	{
+		case 5: return type_u5;
 		case 8: return type_char;
+		case 12: return type_u12;
 		case 16: return type_ushort;
+		case 20: return type_u20;
 		case 32: return type_uint;
 		case 64: return type_ulong;
 		case 128: return type_u128;
@@ -272,8 +284,8 @@ bool type_is_matching_int(CanonicalType *type1, CanonicalType *type2)
 	TypeKind typekind1 = type1->type_kind;
 	TypeKind typekind2 = type2->type_kind;
 	if (typekind1 == typekind2) return type_kind_is_any_integer(typekind1);
-	if (type_kind_is_signed(typekind1)) return typekind1 + (TYPE_U8 - TYPE_I8) == typekind2;
-	if (type_kind_is_unsigned(typekind1)) return typekind2 + (TYPE_U8 - TYPE_I8) == typekind1;
+	if (type_kind_is_signed(typekind1)) return typekind1 + (TYPE_U5 - TYPE_I5) == typekind2;
+	if (type_kind_is_unsigned(typekind1)) return typekind2 + (TYPE_U5 - TYPE_I5) == typekind1;
 	return false;
 }
 
@@ -1301,6 +1313,9 @@ void type_setup(PlatformTarget *target)
 	type_create_float("float128", &t.f128, TYPE_F128, BITS128);
 
 
+	type_init_int("i5", &t.i5, TYPE_I5, BITS8);
+	type_init_int("i12", &t.i12, TYPE_I12, BITS16);
+	type_init_int("i20", &t.i20, TYPE_I20, BITS32);
 	type_init_int("ichar", &t.i8, TYPE_I8, BITS8);
 	type_init_int("short", &t.i16, TYPE_I16, BITS16);
 	type_init_int("int", &t.i32, TYPE_I32, BITS32);
@@ -1308,8 +1323,11 @@ void type_setup(PlatformTarget *target)
 	type_init_int("int128", &t.i128, TYPE_I128, BITS128);
 
 	type_init_int("bool", &t.u1, TYPE_BOOL, BITS8);
+	type_init_int("u5", &t.u5, TYPE_U5, BITS8);
 	type_init_int("char", &t.u8, TYPE_U8, BITS8);
+	type_init_int("u12", &t.u12, TYPE_U12, BITS16);
 	type_init_int("ushort", &t.u16, TYPE_U16, BITS16);
+	type_init_int("u20", &t.u20, TYPE_U20, BITS32);
 	type_init_int("uint", &t.u32, TYPE_U32, BITS32);
 	type_init_int("ulong", &t.u64, TYPE_U64, BITS64);
 	type_init_int("uint128", &t.u128, TYPE_U128, BITS128);
@@ -1351,14 +1369,23 @@ int type_kind_bitsize(TypeKind kind)
 {
 	switch (kind)
 	{
+		case TYPE_I5:
+		case TYPE_U5:
+			return 5;
 		case TYPE_I8:
 		case TYPE_U8:
 			return 8;
+		case TYPE_I12:
+		case TYPE_U12:
+			return 12;
 		case TYPE_I16:
 		case TYPE_U16:
 		case TYPE_F16:
 		case TYPE_BF16:
 			return 16;
+		case TYPE_I20:
+		case TYPE_U20:
+			return 20;
 		case TYPE_I32:
 		case TYPE_U32:
 		case TYPE_F32:
@@ -2009,14 +2036,20 @@ unsigned type_get_introspection_kind(TypeKind kind)
 			return INTROSPECT_TYPE_VOID;
 		case TYPE_BOOL:
 			return INTROSPECT_TYPE_BOOL;
+		case TYPE_I5:
 		case TYPE_I8:
+		case TYPE_I12:
 		case TYPE_I16:
+		case TYPE_I20:
 		case TYPE_I32:
 		case TYPE_I64:
 		case TYPE_I128:
 			return INTROSPECT_TYPE_SIGNED_INT;
+		case TYPE_U5:
 		case TYPE_U8:
+		case TYPE_U12:
 		case TYPE_U16:
+		case TYPE_U20:
 		case TYPE_U32:
 		case TYPE_U64:
 		case TYPE_U128:

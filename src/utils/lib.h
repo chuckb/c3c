@@ -163,6 +163,7 @@ UNUSED void scratch_buffer_append_unsigned_int(uint64_t i);
 void scratch_buffer_printf(const char *format, ...);
 char *scratch_buffer_to_string(void);
 char *scratch_buffer_copy(void);
+void scratch_buffer_backspace(size_t len);
 
 static inline bool is_power_of_two(uint64_t x);
 static inline uint32_t next_highest_power_of_2(uint32_t v);

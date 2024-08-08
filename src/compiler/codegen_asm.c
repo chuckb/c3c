@@ -3,6 +3,10 @@
 // a copy of which can be found in the LICENSE file.
 #include "codegen_internal.h"
 
+// Macro to cast an unsigned value `x` to a signed integer of `n` bits, then extend to int64_t
+#define CAST_AND_EXTEND(x, n) \
+    (((int64_t)((x) << (64 - (n)))) >> (64 - (n)))
+
 static inline void codegen_create_x86att_arg(AsmInlineBlock *block, unsigned input_offset, Expr *expr)
 {
 	ExprAsmArg *arg = &expr->expr_asm_arg;
@@ -112,17 +116,83 @@ static inline void codegen_create_aarch64_arg(AsmInlineBlock *block, unsigned in
 	UNREACHABLE
 }
 
-static inline void codegen_create_riscv_arg(AsmInlineBlock *block, unsigned input_offset, Expr *expr)
+static inline void codegen_create_riscv_arg(AsmInlineBlock *block, unsigned input_offset, unsigned arg_idx, AstAsmStmt* asm_stmt)
 {
+	Expr** args = asm_stmt->args;
+	Expr *expr = args[arg_idx];
 	ExprAsmArg *arg = &expr->expr_asm_arg;
 	switch (arg->kind)
 	{
 		case ASM_ARG_INT:
-			if (arg->value > 2047 && ((int16_t)arg->value) < -2048) PRINT_ERROR_AT(expr, "Immediate signed 12-bit value %d out of range", (int16_t)arg->value);
-			scratch_buffer_append_signed_int((int16_t)arg->value);
+			if (strcmp(asm_stmt->instruction, "addi") == 0 || 
+				strcmp(asm_stmt->instruction, "andi") == 0 || 
+				strcmp(asm_stmt->instruction, "ori") == 0 || 
+				strcmp(asm_stmt->instruction, "xori") == 0 ||
+				strcmp(asm_stmt->instruction, "ld") == 0 ||
+				strcmp(asm_stmt->instruction, "lw") == 0 ||
+				strcmp(asm_stmt->instruction, "lh") == 0 ||
+				strcmp(asm_stmt->instruction, "lhu") == 0 ||
+				strcmp(asm_stmt->instruction, "lb") == 0 ||
+				strcmp(asm_stmt->instruction, "lbu") == 0)
+			{
+//				if (!FITS_IN_BITS(arg->value, 12)) PRINT_ERROR_AT(expr, "Immediate signed 12-bit value out of range");
+				scratch_buffer_append_signed_int(CAST_AND_EXTEND(arg->value, 12));
+			}
+			if (strcmp(asm_stmt->instruction, "slli") == 0 || 
+				strcmp(asm_stmt->instruction, "srli") == 0 ||
+				strcmp(asm_stmt->instruction, "srai") == 0)
+			{
+//				if (!FITS_IN_UNSIGNED_BITS(arg->value, 5)) PRINT_ERROR_AT(expr, "Immediate unsigned 5-bit value out of range");
+				scratch_buffer_append_unsigned_int(arg->value);
+			}
+			if (strcmp(asm_stmt->instruction, "li") == 0)
+			{
+				switch(platform_target.arch)
+				{
+					case ARCH_TYPE_RISCV32:
+//						if (!FITS_IN_BITS(arg->value, 32)) PRINT_ERROR_AT(expr, "Immediate 32-bit value out of range %x", arg->value);
+						scratch_buffer_append_signed_int(CAST_AND_EXTEND(arg->value, 32));
+						break;
+					case ARCH_TYPE_RISCV64:
+						scratch_buffer_append_signed_int((int64_t)arg->value);
+						break;
+					default:
+						UNREACHABLE
+				}
+			}
+			if (strcmp(asm_stmt->instruction, "lui") == 0)
+			{
+//				if (!FITS_IN_UNSIGNED_BITS(arg->value, 20)) PRINT_ERROR_AT(expr, "Immediate unsigned 20-bit value out of range");
+				scratch_buffer_append_unsigned_int(arg->value);
+			}
+			if (strcmp(asm_stmt->instruction, "auipc") == 0)
+			{
+//				if (!FITS_IN_BITS(arg->value, 20)) PRINT_ERROR_AT(expr, "Immediate signed 20-bit value out of range");
+				scratch_buffer_append_signed_int(CAST_AND_EXTEND(arg->value, 20));
+			}
 			return;
 		case ASM_ARG_REG:
-			scratch_buffer_append(&arg->reg.ref->name[1]);
+			if ((strcmp(asm_stmt->instruction, "lw") == 0 || 
+				strcmp(asm_stmt->instruction, "ld") == 0 ||
+				strcmp(asm_stmt->instruction, "lh") == 0 ||
+				strcmp(asm_stmt->instruction, "lhu") == 0 ||
+				strcmp(asm_stmt->instruction, "lb") == 0 ||
+				strcmp(asm_stmt->instruction, "lbu") == 0)
+				&& arg_idx == 2) 
+			{
+				scratch_buffer_backspace(2);
+				if (strcmp(&arg->reg.ref->name[1], "zero") !=0 && 
+					strcmp(&arg->reg.ref->name[1], "x0") !=0)
+				{
+					scratch_buffer_append_char('(');
+					scratch_buffer_append(&arg->reg.ref->name[1]);
+					scratch_buffer_append_char(')');
+				}
+			}
+			else
+			{
+				scratch_buffer_append(&arg->reg.ref->name[1]);
+			}
 			return;
 		case ASM_ARG_VALUE:
 			scratch_buffer_append_char('$');
@@ -213,7 +283,7 @@ static inline char *codegen_create_riscv_asm(AsmInlineBlock *block)
 		for (unsigned i = 0; i < arg_count; i++)
 		{
 			if (i > 0) scratch_buffer_append(", ");
-			codegen_create_riscv_arg(block, input_arg_offset, args[i]);
+			codegen_create_riscv_arg(block, input_arg_offset, i, &ast->asm_stmt);
 		}
 		scratch_buffer_append_char('\n');
 	}

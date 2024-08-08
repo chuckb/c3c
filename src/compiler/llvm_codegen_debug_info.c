@@ -585,16 +585,22 @@ static inline LLVMMetadataRef llvm_get_debug_type_internal(GenContext *c, Type *
 			return type->backend_debug_type = llvm_get_debug_type(c, type_lowering(type));
 		case TYPE_BOOL:
 			return llvm_debug_simple_type(c, type, DW_ATE_boolean);
+		case TYPE_I5:
 		case TYPE_I8:
 			return llvm_debug_simple_type(c, type, DW_ATE_signed_char); // DW_ATE_UTF?
+		case TYPE_U5:
 		case TYPE_U8:
 			return llvm_debug_simple_type(c, type, DW_ATE_unsigned_char);
+		case TYPE_I12:
 		case TYPE_I16:
+		case TYPE_I20:
 		case TYPE_I32:
 		case TYPE_I64:
 		case TYPE_I128:
 			return llvm_debug_simple_type(c, type, DW_ATE_signed);
+		case TYPE_U12:
 		case TYPE_U16:
+		case TYPE_U20:
 		case TYPE_U32:
 		case TYPE_U64:
 		case TYPE_U128:

@@ -657,14 +657,29 @@ bool int_fits(Int op1, TypeKind kind)
 			max = i128_from_signed(INT32_MAX);
 			is_signed = true;
 			break;
+		case TYPE_I20:
+			min = i128_from_signed(INT20_MIN);
+			max = i128_from_signed(INT20_MAX);
+			is_signed = true;
+			break;
 		case TYPE_I16:
 			min = i128_from_signed(INT16_MIN);
 			max = i128_from_signed(INT16_MAX);
 			is_signed = true;
 			break;
+		case TYPE_I12:
+			min = i128_from_signed(INT12_MIN);
+			max = i128_from_signed(INT12_MAX);
+			is_signed = true;
+			break;
 		case TYPE_I8:
 			min = i128_from_signed(INT8_MIN);
 			max = i128_from_signed(INT8_MAX);
+			is_signed = true;
+			break;
+		case TYPE_I5:
+			min = i128_from_signed(INT5_MIN);
+			max = i128_from_signed(INT5_MAX);
 			is_signed = true;
 			break;
 		case TYPE_U128:
@@ -676,11 +691,20 @@ bool int_fits(Int op1, TypeKind kind)
 		case TYPE_U32:
 			max = (Int128){ 0, UINT32_MAX };
 			break;
+		case TYPE_U20:
+			max = (Int128){ 0, UINT20_MAX };
+			break;
 		case TYPE_U16:
 			max = (Int128){ 0, UINT16_MAX };
 			break;
+		case TYPE_U12:
+			max = (Int128){ 0, UINT12_MAX };
+			break;
 		case TYPE_U8:
 			max = (Int128){ 0, UINT8_MAX };
+			break;
+		case TYPE_U5:
+			max = (Int128){ 0, UINT5_MAX };
 			break;
 		default:
 			UNREACHABLE

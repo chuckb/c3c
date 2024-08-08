@@ -1518,9 +1518,9 @@ EXIT:
 	{
 		int min_bits = type_size(type_cint) * 8;
 		Int test = { .i = i };
-		for (int type_kind = 0; type_kind < 5; type_kind++)
+		for (int type_kind = 0; type_kind < 8; type_kind++)
 		{
-			TypeKind kind = (is_unsigned ? TYPE_U8 : TYPE_I8) + type_kind;
+			TypeKind kind = (is_unsigned ? TYPE_U5 : TYPE_I5) + type_kind;
 			int bitsize = type_kind_bitsize(kind);
 			if (bitsize < min_bits) continue;
 			test.type = kind;

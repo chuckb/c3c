@@ -103,11 +103,20 @@ static void header_print_type(HeaderContext *c, Type *type)
 		case TYPE_BOOL:
 			PRINTF("bool");
 			return;
+		case TYPE_I5:
+			PRINTF("int8_t");
+			return;
 		case TYPE_I8:
 			PRINTF("int8_t");
 			return;
+		case TYPE_I12:
+			PRINTF("int16_t");
+			return;
 		case TYPE_I16:
 			PRINTF("int16_t");
+			return;
+		case TYPE_I20:
+			PRINTF("int32_t");
 			return;
 		case TYPE_I32:
 			PRINTF("int32_t");
@@ -118,11 +127,20 @@ static void header_print_type(HeaderContext *c, Type *type)
 		case TYPE_I128:
 			PRINTF("__int128");
 			return;
+		case TYPE_U5:
+			PRINTF("uint8_t");
+			return;
 		case TYPE_U8:
 			PRINTF("uint8_t");
 			return;
+		case TYPE_U12:
+			PRINTF("uint16_t");
+			return;
 		case TYPE_U16:
 			PRINTF("uint16_t");
+			return;
+		case TYPE_U20:
+			PRINTF("uint32_t");
 			return;
 		case TYPE_U32:
 			PRINTF("uint32_t");

@@ -418,4 +418,14 @@ char *scratch_buffer_copy(void)
 	return str_copy(scratch_buffer.str, scratch_buffer.len);
 }
 
-
+void scratch_buffer_backspace(size_t len)
+{
+	if (scratch_buffer.len < len)
+	{
+		scratch_buffer_clear();
+	}
+	else
+	{
+		scratch_buffer.len -= len;
+	}
+}
