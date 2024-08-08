@@ -135,14 +135,12 @@ static inline void codegen_create_riscv_arg(AsmInlineBlock *block, unsigned inpu
 				strcmp(asm_stmt->instruction, "lb") == 0 ||
 				strcmp(asm_stmt->instruction, "lbu") == 0)
 			{
-//				if (!FITS_IN_BITS(arg->value, 12)) PRINT_ERROR_AT(expr, "Immediate signed 12-bit value out of range");
 				scratch_buffer_append_signed_int(CAST_AND_EXTEND(arg->value, 12));
 			}
 			if (strcmp(asm_stmt->instruction, "slli") == 0 || 
 				strcmp(asm_stmt->instruction, "srli") == 0 ||
 				strcmp(asm_stmt->instruction, "srai") == 0)
 			{
-//				if (!FITS_IN_UNSIGNED_BITS(arg->value, 5)) PRINT_ERROR_AT(expr, "Immediate unsigned 5-bit value out of range");
 				scratch_buffer_append_unsigned_int(arg->value);
 			}
 			if (strcmp(asm_stmt->instruction, "li") == 0)
@@ -150,7 +148,6 @@ static inline void codegen_create_riscv_arg(AsmInlineBlock *block, unsigned inpu
 				switch(platform_target.arch)
 				{
 					case ARCH_TYPE_RISCV32:
-//						if (!FITS_IN_BITS(arg->value, 32)) PRINT_ERROR_AT(expr, "Immediate 32-bit value out of range %x", arg->value);
 						scratch_buffer_append_signed_int(CAST_AND_EXTEND(arg->value, 32));
 						break;
 					case ARCH_TYPE_RISCV64:
@@ -162,12 +159,10 @@ static inline void codegen_create_riscv_arg(AsmInlineBlock *block, unsigned inpu
 			}
 			if (strcmp(asm_stmt->instruction, "lui") == 0)
 			{
-//				if (!FITS_IN_UNSIGNED_BITS(arg->value, 20)) PRINT_ERROR_AT(expr, "Immediate unsigned 20-bit value out of range");
 				scratch_buffer_append_unsigned_int(arg->value);
 			}
 			if (strcmp(asm_stmt->instruction, "auipc") == 0)
 			{
-//				if (!FITS_IN_BITS(arg->value, 20)) PRINT_ERROR_AT(expr, "Immediate signed 20-bit value out of range");
 				scratch_buffer_append_signed_int(CAST_AND_EXTEND(arg->value, 20));
 			}
 			return;
